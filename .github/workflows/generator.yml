@@ -1,0 +1,77 @@
+name: Update Permify TypeScript SDK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    name: Generate SDK from OpenAPI
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+
+      - name: Download OpenAPI Spec
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/Permify/permify/master/docs/api-reference/openapiv2/apidocs.swagger.json" \
+            -o generator/openapi.json
+
+      - name: Setup Java
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Generate TypeScript SDK
+        run: |
+          chmod +x generator/generate-sdk.sh
+          generator/generate-sdk.sh
+
+      - name: Commit changes
+        id: commitchanges
+        run: |
+          chmod +x scripts/commit-changes.sh
+          scripts/commit-changes.sh "sdk-update/permify-latest"
+        shell: bash
+
+      - name: Push changes and open PR
+        if: steps.commitchanges.outputs.changes_made == '1'
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          BRANCH_NAME="${{ steps.commitchanges.outputs.branch_name }}"
+          PR_TITLE="chore(openapi): update generated SDK with latest Permify definitions"
+          PR_BODY="Automatically created PR with the latest generated SDK from Permify OpenAPI definitions."
+
+          git push --force "https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}" "${BRANCH_NAME}"
+
+          PR_NUMBER="$(gh pr list --head "${BRANCH_NAME}" --base master --state open --json number --jq '.[0].number')"
+
+          if [ -n "${PR_NUMBER}" ]; then
+            gh pr edit "${PR_NUMBER}" --title "${PR_TITLE}" --body "${PR_BODY}"
+          else
+            CREATE_ARGS=(--base master --head "${BRANCH_NAME}" --title "${PR_TITLE}" --body "${PR_BODY}")
+            LABELS="$(gh label list --json name --jq '.[].name' || true)"
+
+            if printf '%s\n' "${LABELS}" | grep -qx 'dependencies'; then
+              CREATE_ARGS+=(--label dependencies)
+            fi
+
+            if printf '%s\n' "${LABELS}" | grep -qx 'automated'; then
+              CREATE_ARGS+=(--label automated)
+            fi
+
+            gh pr create "${CREATE_ARGS[@]}"
+          fi
+        shell: bash
