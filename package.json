@@ -27,8 +27,8 @@
     "build": "rm -rf dist && tsc -p tsconfig.json",
     "prepare": "npm run build",
     "test": "npm run test:smoke",
-    "test:smoke": "tsx --test test/**/*.spec.ts",
-    "test:live": "tsx --test integration/**/*.spec.ts",
+    "test:smoke": "tsx --test test/*.spec.ts",
+    "test:live": "tsx --test integration/*.spec.ts",
     "run-live-tests": "bash ./scripts/run-live-tests.sh",
     "run-instance": "bash ./scripts/run-live-tests.sh"
   },
