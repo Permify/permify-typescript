@@ -44,10 +44,23 @@ apiInstance.tenantsCreate({
 
 ```
 
+## Development
+
+```sh
+npm install
+npm run build
+npm test
+```
+
+To run the live REST tests against a local Permify instance started via Docker Compose:
+
+```sh
+npm run run-instance
+```
+
 ## Author
 
 hello@permify.co
-
 
 
 

@@ -1,0 +1,56 @@
+{
+  "name": "permify-typescript",
+  "version": "0.0.0-development",
+  "description": "TypeScript client for Permify.",
+  "license": "Apache-2.0",
+  "private": false,
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "test": "npm run test:smoke",
+    "test:smoke": "tsx --test test/**/*.spec.ts",
+    "test:live": "tsx --test integration/**/*.spec.ts",
+    "run-live-tests": "bash ./scripts/run-live-tests.sh",
+    "run-instance": "bash ./scripts/run-live-tests.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Permify/permify-typescript.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Permify/permify-typescript/issues"
+  },
+  "homepage": "https://github.com/Permify/permify-typescript#readme",
+  "keywords": [
+    "permissions",
+    "authorization",
+    "access-control",
+    "rebac",
+    "fga",
+    "typescript"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
