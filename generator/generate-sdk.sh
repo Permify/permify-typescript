@@ -35,7 +35,7 @@ java -jar "${JAR_PATH}" generate \
   --input-spec "${OPENAPI_FILE}" \
   --generator-name typescript-fetch \
   --output "${TMP_DIR}" \
-  --additional-properties "npmName=permify-typescript,npmVersion=${PACKAGE_VERSION},supportsES6=true" \
+  --additional-properties "npmName=permify-typescript,npmVersion=${PACKAGE_VERSION},supportsES6=true,removeEnumValuePrefix=true" \
   --skip-validate-spec
 
 # With npmName set, typescript-fetch writes sources under src/ (openapi-generator >= 7.10).
