@@ -33,10 +33,21 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Setup Node.js
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: 20
+
       - name: Generate TypeScript SDK
         run: |
           chmod +x generator/generate-sdk.sh
           generator/generate-sdk.sh
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run smoke tests
+        run: npm test
 
       - name: Commit changes
         id: commitchanges
