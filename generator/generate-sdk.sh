@@ -8,7 +8,8 @@ OPENAPI_FILE="${SCRIPT_DIR}/openapi.json"
 GENERATOR_VERSION="7.21.0"
 JAR_PATH="${SCRIPT_DIR}/openapi-generator-cli.jar"
 TMP_DIR="$(mktemp -d)"
-PACKAGE_VERSION="$(sed -n 's/^[[:space:]]*"version":[[:space:]]*"\([^"]*\)".*/\1/p' "${PROJECT_ROOT}/package.json" | head -n 1)"
+OPENAPI_VERSION=""
+PACKAGE_VERSION=""
 
 cleanup() {
   rm -rf "${TMP_DIR}" "${JAR_PATH}"
@@ -21,8 +22,11 @@ if [[ ! -f "${OPENAPI_FILE}" ]]; then
   exit 1
 fi
 
-if [[ -z "${PACKAGE_VERSION}" ]]; then
-  echo "Could not determine package version from ${PROJECT_ROOT}/package.json" >&2
+OPENAPI_VERSION="$(sed -n 's/.*"version":[[:space:]]*"\([^"]*\)".*/\1/p' "${OPENAPI_FILE}" | head -n 1)"
+PACKAGE_VERSION="${OPENAPI_VERSION#v}"
+
+if [[ -z "${OPENAPI_VERSION}" || -z "${PACKAGE_VERSION}" ]]; then
+  echo "Could not determine package version from ${OPENAPI_FILE}" >&2
   exit 1
 fi
 
@@ -47,5 +51,9 @@ rsync -a --delete "${SRC_DIR}/models/" "${PROJECT_ROOT}/models/"
 rsync -a --delete "${TMP_DIR}/.openapi-generator/" "${PROJECT_ROOT}/.openapi-generator/"
 cp "${SRC_DIR}/index.ts" "${PROJECT_ROOT}/index.ts"
 cp "${SRC_DIR}/runtime.ts" "${PROJECT_ROOT}/runtime.ts"
+
+perl -0pi -e 's/"version":\s*"[^"]*"/"version": "'"${PACKAGE_VERSION}"'"/' "${PROJECT_ROOT}/package.json"
+perl -0pi -e 's/"version":\s*"[^"]*"/"version": "'"${PACKAGE_VERSION}"'"/' "${PROJECT_ROOT}/package-lock.json"
+perl -0pi -e 's/("":\s*\{\s*"name":\s*"permify-typescript",\s*"version":\s*)"[^"]*"/$1"'"${PACKAGE_VERSION}"'"/s' "${PROJECT_ROOT}/package-lock.json"
 
 echo "Generation complete."
